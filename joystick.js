@@ -6,8 +6,11 @@ class JoyStick {
 		this.kr = p.kr;
 		this.kx = 0;
 		this.ky = 0; // Knob coords
+		this.deltaX = 0;
+		this.deltaY = 0;
+		this.force = 0; // Can be used for dynamic velocity
 		this.canvas = this.newCanvas(p.br * 2, p.br * 2);
-		this.canvas.style.backgroundColor = "blue";
+		this.canvas.style.backgroundColor = this.rgba([200, 200, 200, 0.5]);
 		this.canvas.style.borderRadius = "50%";
 		this.w = this.canvas.width;
 		this.h = this.canvas.height;
@@ -46,14 +49,27 @@ class JoyStick {
 	}
 	
 	update() {
-		if (this.dist(0, 0, this.kx, this.ky) > this.dist(0, 0, this.br - this.kr, 0)) {
+		if (this.kx && this.ky) { // If knob not at joystick center
 			var a = Math.atan2(this.ky, this.kx);
-			var v1 = Math.cos(a);
-			console.log((this.kx))
-			var v2 = Math.sin(a);
-			this.kx = v1 * (60);
-			this.ky = v2 * (60);
+			var cos = Math.cos(a);
+			var sin = Math.sin(a);
+			this.deltaX = cos;
+			this.deltaY = sin;
+		} else {
+			this.deltaX = 0;
+			this.deltaY = 0;
+			this.force = 0; // Cancelling deltas and force if joystick is inactive
 		}
+		
+		var dk = this.dist(0, 0, this.kx, this.ky); // Origin - knob dist
+		var md = this.br - this.kr; // Maximum allowed dist
+		if (dk >= md) {
+			this.kx = cos * (this.br - this.kr);
+			this.ky = sin * (this.br - this.kr);
+		}
+		
+		dk = this.dist(0, 0, this.kx, this.ky); // Updating dk in case knob was moved
+		this.force = dk / md;
 		
 		var c = this.ctx;
 		c.clearRect(-this.w / 2, -this.h / 2, this.w, this.h);

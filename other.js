@@ -1,6 +1,8 @@
 var ctx, w, h;
 var j;
 
+var x, y;
+
 window.onload = function() {
 	var canv = document.createElement("canvas");
 	document.body.appendChild(canv);
@@ -15,11 +17,17 @@ window.onload = function() {
 		kr: 20, // Knob radius
 	});
 	
+	x = w / 2 - 10;
+	y = h / 2 - 10;
+	
 	window.requestAnimationFrame(main);
 }
 
 function main() {
-	
+	x += j.deltaX * j.force * 32;
+	y += j.deltaY * j.force * 32;
+	ctx.clearRect(0, 0, w, h);
+	ctx.fillRect(x, y, 20, 20);
 	
 	window.requestAnimationFrame(main);
 }
