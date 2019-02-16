@@ -2,7 +2,7 @@ var ctx, w, h;
 var j;
 
 window.onload = function() {
-	var canv = newCanvas();
+	var canv = document.createElement("canvas");
 	document.body.appendChild(canv);
 	canv.width = w = window.innerWidth;
 	canv.height = h = window.innerHeight;
@@ -22,16 +22,4 @@ function main() {
 	
 	
 	window.requestAnimationFrame(main);
-}
-
-function newCanvas(ws, hs) {
-	var canv = document.createElement("canvas");
-	document.body.appendChild(canv);
-	canv.width = ws;
-	canv.height = hs;
-	return canv;
-}
-
-function rgba(arr) {
-	return "rgba(" + arr + ")";
 }
