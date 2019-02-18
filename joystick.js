@@ -1,5 +1,7 @@
 class JoyStick {
 	constructor(p) {
+		this.x = p.x;
+		this.y = p.y;
 		this.bc = p.bc;
 		this.kc = p.kc;
 		this.br = p.br;
@@ -10,56 +12,65 @@ class JoyStick {
 		this.deltaY = 0;
 		this.force = 0; // Can be used for dynamic velocity
 		this.canvas = this.newCanvas(p.br * 2, p.br * 2);
-		this.canvas.style.backgroundColor = this.rgba([200, 200, 200, 0.5]);
+		this.canvas.style.position = "absolute";
+		this.canvas.style.left = "" + this.x + "px";
+		this.canvas.style.top = "" + this.y + "px";
+		this.canvas.style.backgroundColor = this.rgba(this.bc);
 		this.canvas.style.borderRadius = "50%";
 		this.w = this.canvas.width;
 		this.h = this.canvas.height;
 		this.ctx = this.canvas.getContext("2d");
 		this.ctx.translate(this.w / 2, this.h / 2); // Moves origin to canvas center
-		this.ctx.save();
+		
 		// Read why https://stackoverflow.com/questions/12731528/adding-event-listeners-in-constructor
 		var self = this;
-		this.addEventListeners(self.canvas, ["touchstart", "touchmove"], function(e) {
-			self.kx = e.clientX - self.w / 2;
-			self.ky = e.clientY - self.h / 2;
-			self.update();
-		});
-		
+		// For mouse drag
 		var isdown = false;
-		this.canvas.addEventListener("mousedown", function(e) {
-			isdown = true;
-			self.kx = e.clientX - self.w / 2;
-			self.ky = e.clientY - self.h / 2;
-			self.update();
-		});
-		this.addEventListeners(self.canvas, ["mouseup", "mouseout"], function() {
+		this.addEventListeners(self.canvas, ["mouseup", "mouseout", "touchend"], function() { // Fix mouseout
 			isdown = false;
 			self.kx = 0;
 			self.ky = 0;
 			self.update();
 		});
-		this.canvas.addEventListener("mousemove", function(e) {
-			if (isdown) {
-				self.kx = e.clientX - self.w / 2;
-				self.ky = e.clientY - self.h / 2;
-				self.update();
+		this.addEventListeners(self.canvas, ["mousedown", "touchstart"], function(e) {
+			isdown = true;
+			if (e.touches) { // If touch (not mousedown)
+				self.kx = e.touches[0].clientX - self.x - self.w / 2;
+				self.ky = e.touches[0].clientY - self.y - self.h / 2;
+			} else {
+				self.kx = e.clientX - self.x - self.w / 2;
+				self.ky = e.clientY - self.y - self.h / 2;
 			}
-		});
+            self.update();
+        });
+        this.addEventListeners(self.canvas, ["mousemove", "touchmove"], function(e) {
+            if (e.touches) {
+				self.kx = e.touches[0].clientX - self.x - self.w / 2;
+				self.ky = e.touches[0].clientY - self.y - self.h / 2;
+			} else {
+				if (isdown) {
+					self.kx = e.clientX - self.x - self.w / 2;
+					self.ky = e.clientY - self.y - self.h / 2;
+				}
+			}
+			self.update();
+        });
+        
 		this.update();
 	}
 	
 	update() {
-		if (this.kx && this.ky) { // If knob not at joystick center
-			var a = Math.atan2(this.ky, this.kx);
-			var cos = Math.cos(a);
-			var sin = Math.sin(a);
-			this.deltaX = cos;
-			this.deltaY = sin;
-		} else {
-			this.deltaX = 0;
-			this.deltaY = 0;
-			this.force = 0; // Cancelling deltas and force if joystick is inactive
-		}
+		var a = Math.atan2(this.ky, this.kx);
+        var cos = Math.cos(a);
+        var sin = Math.sin(a);
+        if (this.kx && this.ky) { // If knob not at joystick center
+            this.deltaX = cos;
+            this.deltaY = sin;
+        } else {
+            this.deltaX = 0;
+            this.deltaY = 0;
+            this.force = 0; // Cancelling deltas and force if joystick is inactive
+        }
 		
 		var dk = this.dist(0, 0, this.kx, this.ky); // Origin - knob dist
 		var md = this.br - this.kr; // Maximum allowed dist
