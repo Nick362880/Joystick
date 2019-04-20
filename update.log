@@ -1,0 +1,7 @@
+Version 1.2 - 4/20/19:
+	- Fixed mobile bug where multiple joysticks would focus towards earliest touch event
+
+Version 1.1 - 2/21/19*:
+	- Joystick objects are not constructed with the more familiar non-object arguments
+
+*First log. Previous modifications can be read with git log
